@@ -1,0 +1,56 @@
+"""Module responsible for using checkrebuild
+"""
+import subprocess
+import logging
+import re
+
+
+def check_rebuild() -> tuple[str,...]:
+    """check AUR packages requiring updates
+
+    Returns:
+        tuple[str,...]: tuple of packages requiring updates
+    Raises:
+        UnicodeError: if it's not possible to convert stdout to string
+    """
+    try:
+        result = subprocess.run("checkrebuild", shell=True, capture_output=True, check=True)
+    except subprocess.CalledProcessError:
+        message = "checkrebuild not available"
+        print(message)
+        logging.warning(message)
+        return ()
+    stdout: bytes = result.stdout
+    try:
+        packages: tuple[str,...] = extract_packages(stdout)
+    except UnicodeError as exc:
+        raise UnicodeError from exc
+
+    return packages
+
+
+def extract_packages(stdout: bytes) -> tuple[str,...]:
+    """extract package data from stdout
+
+    Args:
+        stdout (bytes): stdout from checkrebuild
+
+    Raises:
+        UnicodeError: if it's not possible to convert stdout to string
+
+    Returns:
+        tuple[str,...]: tuple of packages requiring updates
+    """
+    try:
+        conversion: str = stdout.decode(encoding="utf-8", errors="strict")
+    except UnicodeError as exc:
+        raise UnicodeError("stdout could not be converted to string") from exc
+    search_result = re.findall(r"(foreign)\t(.+)\n", conversion)
+    result: list[str] = []
+    for element in search_result:
+        result.append(element[1])
+    return tuple(result)
+
+
+if __name__ == "__main__":
+    check_rebuild()
