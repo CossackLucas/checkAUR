@@ -4,6 +4,7 @@
 import logging
 import os
 from pathlib import Path
+
 from dotenv import find_dotenv, set_key
 
 def set_aur_path(aur_path: Path) -> bool:
@@ -46,7 +47,7 @@ def setting_env_variable(aur_path: Path):
     """
     env_var = os.environ.get("aur_path")
     if env_var is not None:
-        env_var = aur_path.as_posix()
+        os.environ["aur_path"] = aur_path.as_posix()
         return
     try:
         env_path = find_dotenv(raise_error_if_not_found=True)
@@ -57,3 +58,24 @@ def setting_env_variable(aur_path: Path):
         raise EnvironmentError("Environament variable could not be set") from exc
 
     set_key(env_path, "aur_path", aur_path.as_posix())
+
+
+def load_dotenv() -> Path:
+    try:
+        find_dotenv(raise_error_if_not_found=True)
+    except IOError as exc:
+        env_var = os.environ.get("aur_path")
+        if env_var is None:
+            message = ".env file not found!"
+            logging.error(message)
+            print(message)
+            raise EnvironmentError("Environament variable could not be extracted") from exc
+        return Path(env_var)
+
+    env_var = os.environ.get("aur_path")
+    if env_var is None:
+        message = "'aur_path' not in the enviroment variables! Use checkAUR -s"
+        logging.error(message)
+        print(message)
+        raise EnvironmentError("Environament variable could not be extracted")
+    return Path(env_var)

@@ -52,5 +52,12 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
     return tuple(result)
 
 
+def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
+    logging.debug("Printing package list")
+    print("AUR packages with issues:")
+    for package in invalid_packages:
+        print(package)
+
+
 if __name__ == "__main__":
     check_rebuild()

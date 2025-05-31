@@ -7,8 +7,8 @@ import argparse
 from pathlib import Path
 
 from checkAUR.aur_path import set_aur_path
-from checkAUR.check_rebuild import check_rebuild
 from checkAUR.check_user import check_if_root
+from checkAUR.__main__ import run_main
 
 
 def main_cli():
@@ -22,9 +22,6 @@ def main_cli():
     )
     logging.debug("Check user type")
     if check_if_root():
-        message = "Should not be ran as root!"
-        logging.critical(message)
-        print(message)
         return
 
     logging.debug("Setting parser")
@@ -37,27 +34,12 @@ def main_cli():
     args = parser.parse_args()
     if args.set:
         logging.debug("Setting AUR localization")
-        if not set_aur_path(Path(args.set)):
+        if not set_aur_path(Path(args.set[0])):
             logging.error("Setting was unsuccessful!")
         else:
             logging.debug("Setting AUR successful.")
 
-    if args.ignore:
-        logging.debug("Running checkrebuild")
-        try:
-            invalid_packages = check_rebuild()
-        except UnicodeError:
-            message = "Error during analysis of checkrebuild results! Closing..."
-            print(message)
-            logging.critical(message)
-            return
-        logging.debug("Search results:")
-        logging.debug(invalid_packages)
-
-    if args.fetch:
-        print("Just fetching")
-
-    print("Nothing")
+    run_main(ignore=args.ignore, fetch=args.fetch)
 
 
 if __name__ == "__main__":
