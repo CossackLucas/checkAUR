@@ -8,6 +8,7 @@ from pathlib import Path
 
 from checkAUR.aur_path import set_aur_path
 from checkAUR.check_rebuild import check_rebuild
+from checkAUR.check_user import check_if_root
 
 
 def main_cli():
@@ -19,6 +20,13 @@ def main_cli():
         filename="logs.log",
         filemode="a"
     )
+    logging.debug("Check user type")
+    if check_if_root():
+        message = "Should not be ran as root!"
+        logging.critical(message)
+        print(message)
+        return
+
     logging.debug("Setting parser")
 
     parser = argparse.ArgumentParser(usage="%(prog)s [options]")

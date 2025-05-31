@@ -1,10 +1,11 @@
 """Main for checkAUR
 """
-import os
+
+from checkAUR.check_user import check_if_root
 
 
 def main():
-    if os.getuid() == 0:
+    if check_if_root():
         return
     print("Not root")
 
