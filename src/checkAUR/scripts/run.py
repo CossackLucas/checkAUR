@@ -6,7 +6,7 @@ import logging
 import argparse
 from pathlib import Path
 
-from checkAUR.aur_path import set_aur_localization
+from checkAUR.aur_path import set_aur_path
 
 
 def main_cli():
@@ -25,7 +25,7 @@ def main_cli():
     args = parser.parse_args()
     if args.set:
         logging.debug("Setting AUR localization")
-        if not set_aur_localization(args.set):
+        if not set_aur_path(args.set):
             logging.warning("Setting was unsuccessful!")
             return
         logging.debug("Setting AUR successful.")
