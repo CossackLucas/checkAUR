@@ -2,13 +2,22 @@
 """
 
 import logging
-import os
+from pathlib import Path
+
+import pyperclip # type: ignore [import-untyped]
 
 from checkAUR.check_user import check_if_root
 from checkAUR.check_rebuild import check_rebuild, print_invalid_packages
 from checkAUR.aur_path import load_dotenv
 from checkAUR.use_git import pull_entire_aur
 from checkAUR.compare_packages import compare_packages
+
+
+def copy_aur_wd(aur_path: Path) -> None:
+    if not isinstance(aur_path, Path):
+        raise TypeError("Path should be pathlib.Path type!") 
+    pyperclip.copy(f"cd {aur_path.as_posix()}")
+    print("Command to get to AUR folder was copied into the clipboard.")
 
 
 def run_main(ignore=False, fetch=False):
@@ -39,7 +48,7 @@ def run_main(ignore=False, fetch=False):
     logging.debug("%s repos pulled", count_pulled_packages)
     compare_packages(pulled_packages, invalid_packages)
     if len(pulled_packages) != 0 or len(invalid_packages) != 0:
-        os.chdir(aur_path)
+        copy_aur_wd(aur_path)
 
 
 def main():
