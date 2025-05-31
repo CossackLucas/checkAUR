@@ -20,7 +20,7 @@ def test_no_env(monkeypatch):
     """test no access to environment variables
     """
     monkeypatch.delenv("aur_path", raising=False)
-    monkeypatch.setattr("checkAUR.aur_path.find_dotenv", raise_io_exception, raising=True)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", raise_io_exception, raising=True)
     with pytest.raises(EnvironmentError):
         setting_env_variable(ROOT_PATH)
 
@@ -32,7 +32,7 @@ def test_only_dotenv(monkeypatch):
         monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
 
     monkeypatch.delenv("aur_path", raising=False)
-    monkeypatch.setattr("checkAUR.aur_path.set_key", mock_aur_path)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.set_key", mock_aur_path)
 
     setting_env_variable(aur_path=ROOT_PATH)
     assert os.environ.get("aur_path") is ROOT_PATH.as_posix()
@@ -41,7 +41,7 @@ def test_only_dotenv(monkeypatch):
 def test_only_environ(monkeypatch):
     """test only system environment variable
     """
-    monkeypatch.setattr("checkAUR.aur_path.find_dotenv", raise_io_exception, raising=True)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", raise_io_exception, raising=True)
     monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
 
     setting_env_variable(aur_path=ROOT_PATH)
@@ -55,7 +55,7 @@ def test_both_env_var(monkeypatch):
         monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
 
     monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
-    monkeypatch.setattr("checkAUR.aur_path.set_key", mock_aur_path)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.set_key", mock_aur_path)
 
     setting_env_variable(aur_path=ROOT_PATH)
     assert os.environ.get("aur_path") is ROOT_PATH.as_posix()
