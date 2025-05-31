@@ -5,7 +5,7 @@ import logging
 import os
 from pathlib import Path
 
-from dotenv import find_dotenv, set_key
+import dotenv
 
 def set_aur_path(aur_path: Path) -> bool:
     """Set localization of the private AUR folders
@@ -50,19 +50,19 @@ def setting_env_variable(aur_path: Path):
         os.environ["aur_path"] = aur_path.as_posix()
         return
     try:
-        env_path = find_dotenv(raise_error_if_not_found=True)
+        env_path = dotenv.find_dotenv(raise_error_if_not_found=True)
     except IOError as exc:
         message = ".env file not found!"
         logging.error(message)
         print(message)
         raise EnvironmentError("Environament variable could not be set") from exc
 
-    set_key(env_path, "aur_path", aur_path.as_posix())
+    dotenv.set_key(env_path, "aur_path", aur_path.as_posix())
 
 
 def load_dotenv() -> Path:
     try:
-        find_dotenv(raise_error_if_not_found=True)
+        env_file = dotenv.find_dotenv(raise_error_if_not_found=True)
     except IOError as exc:
         env_var = os.environ.get("aur_path")
         if env_var is None:
@@ -72,6 +72,7 @@ def load_dotenv() -> Path:
             raise EnvironmentError("Environament variable could not be extracted") from exc
         return Path(env_var)
 
+    dotenv.load_dotenv(env_file)
     env_var = os.environ.get("aur_path")
     if env_var is None:
         message = "'aur_path' not in the enviroment variables! Use checkAUR -s"

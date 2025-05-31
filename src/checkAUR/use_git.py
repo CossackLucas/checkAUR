@@ -42,7 +42,10 @@ def pull_repo(repo_path: Path) -> bool:
     result = repo.remotes.origin.fetch()
     if result[0].commit.hexsha == repo.head.commit.hexsha:
         return False
-    repo.remotes.origin.pull()
+    try:
+        repo.remotes.origin.pull()
+    except git.exc.GitCommandError:
+        return False
     return True
 
 
