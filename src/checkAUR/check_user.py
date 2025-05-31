@@ -2,6 +2,7 @@
 """
 
 import os
+import logging
 
 
 def check_if_root() -> bool:
@@ -11,5 +12,8 @@ def check_if_root() -> bool:
         bool: if it's root then True
     """
     if os.getuid() == 0:
+        message = "Should not be run as root!"
+        print(message)
+        logging.critical(message)
         return True
     return False
