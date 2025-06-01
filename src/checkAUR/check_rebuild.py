@@ -53,6 +53,11 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
 
 
 def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
+    """print list of all packages, marked as invalid by checkrbuild
+
+    Args:
+        invalid_packages (tuple[str,...]): tuple of invalid packages
+    """
     logging.debug("Printing package list")
     print("AUR packages with issues:")
     for package in invalid_packages:

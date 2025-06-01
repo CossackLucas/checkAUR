@@ -10,6 +10,18 @@ from git import Repo
 import git.exc
 
 def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
+    """check if repo has parameters expected from AUR
+
+    Args:
+        repo_path (Path): absolute path to the repository
+
+    Raises:
+        OSError: if no repo in the directory
+        ValueError: if no directory at the path
+
+    Returns:
+        Optiona[Repo]: Repo object if it's corrent, None if it's not
+    """
     assert isinstance(repo_path, Path)
     logging.debug("Checking repo in %s", repo_path.as_posix())
     try:
@@ -35,6 +47,14 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
 
 
 def pull_repo(repo_path: Path) -> bool:
+    """perform 'git pull' on one repository under the given path
+
+    Args:
+        repo_path (Path): path to the repo's folder
+
+    Returns:
+        bool: True if operation was successful, False if not
+    """
     assert isinstance(repo_path, Path)
     repo = check_if_correct_repo(repo_path)
     if repo is None:
@@ -50,6 +70,14 @@ def pull_repo(repo_path: Path) -> bool:
 
 
 def pull_entire_aur(aur_path: Path) -> tuple[str,...]:
+    """perform 'git pull' on user's entire AUR folder
+
+    Args:
+        aur_path (Path): path to user's AUR folder
+
+    Returns:
+        tuple[str,...]: tuple of pulled package's names
+    """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
     repo_list = []
