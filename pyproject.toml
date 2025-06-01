@@ -2,6 +2,7 @@
 name = "checkAUR"
 requires-python = ">=3.12"
 version = "0.1.0"
+license = "MIT"
 dependencies = [
   "GitPython",
   "dotenv",

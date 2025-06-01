@@ -8,12 +8,20 @@ import pyperclip # type: ignore [import-untyped]
 
 from checkAUR.check_user import check_if_root
 from checkAUR.check_rebuild import check_rebuild, print_invalid_packages
-from checkAUR.aur_path import load_dotenv
+from checkAUR.aur_path import load_env
 from checkAUR.use_git import pull_entire_aur
 from checkAUR.compare_packages import compare_packages
 
 
 def copy_aur_wd(aur_path: Path) -> None:
+    """copy 'cd /aur/path' command into clipboard. Current solution to cwd problem
+
+    Args:
+        aur_path (Path): path to user's AUR folders
+
+    Raises:
+        TypeError: if aur_path is of the wrong type
+    """
     if not isinstance(aur_path, Path):
         raise TypeError("Path should be pathlib.Path type!") 
     pyperclip.copy(f"cd {aur_path.as_posix()}")
@@ -21,6 +29,15 @@ def copy_aur_wd(aur_path: Path) -> None:
 
 
 def run_main(ignore=False, fetch=False):
+    """run main program sequence
+
+    Args:
+        ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
+        fetch (bool, optional): if only git fetch should be used. Defaults to False.
+
+    Raises:
+        NotImplementedError: _description_
+    """
     if ignore:
         logging.debug("Running checkrebuild")
         try:
@@ -36,7 +53,7 @@ def run_main(ignore=False, fetch=False):
     else:
         invalid_packages = ()
     try:
-        aur_path = load_dotenv()
+        aur_path = load_env()
     except EnvironmentError:
         return
 
@@ -52,6 +69,8 @@ def run_main(ignore=False, fetch=False):
 
 
 def main():
+    """Main function for checkAUR
+    """
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",

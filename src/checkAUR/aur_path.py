@@ -60,7 +60,15 @@ def setting_env_variable(aur_path: Path):
     dotenv.set_key(env_path, "aur_path", aur_path.as_posix())
 
 
-def load_dotenv() -> Path:
+def load_env() -> Path:
+    """load required environment variables
+
+    Raises:
+        EnvironmentError: if it's not possible to find required variables
+
+    Returns:
+        Path: _description_
+    """
     try:
         env_file = dotenv.find_dotenv(raise_error_if_not_found=True)
     except IOError as exc:
