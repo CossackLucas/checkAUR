@@ -28,7 +28,7 @@ def copy_aur_wd(aur_path: Path) -> None:
     print("Command to get to AUR folder was copied into the clipboard.")
 
 
-def run_main(ignore=False, fetch=False):
+def run_main(ignore=False):
     """run main program sequence
 
     Args:
@@ -58,8 +58,6 @@ def run_main(ignore=False, fetch=False):
         return
 
     logging.debug("Starting pulling repos")
-    if fetch:
-        raise NotImplementedError("Use of fetch not implemented!")
     pulled_packages = pull_entire_aur(aur_path)
     count_pulled_packages = len(pulled_packages)
     logging.debug("%s repos pulled", count_pulled_packages)
