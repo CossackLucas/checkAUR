@@ -53,7 +53,8 @@ def run_main(ignore=False):
     else:
         invalid_packages = ()
     try:
-        aur_path = load_env()
+        env_variables = load_env()
+        aur_path = env_variables.aur_path
     except EnvironmentError:
         return
 

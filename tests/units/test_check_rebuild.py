@@ -5,6 +5,7 @@ import subprocess
 import pytest
 
 from checkAUR.check_rebuild import check_rebuild # type: ignore [import-untyped]
+from checkAUR.common.exceptions import ProgramNotInstalledError # type: ignore [import-untyped]
 
 
 def mock_raise_process_error(*args, **kwargs):
@@ -17,7 +18,9 @@ def test_check_rebuild_unavailable(monkeypatch):
     """test for situation, when check rebuild is not available
     """
     monkeypatch.setattr("checkAUR.check_rebuild.subprocess.run", mock_raise_process_error)
-    assert check_rebuild() == ()
+    with pytest.raises(ProgramNotInstalledError) as exc:
+        check_rebuild()
+    assert exc.value.program == "rebuild-detector"
 
 
 class MockRunOutput:

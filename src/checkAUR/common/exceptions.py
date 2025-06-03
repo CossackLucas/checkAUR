@@ -12,5 +12,6 @@ class ProgramNotInstalledError(Exception):
             program (str): name of missing program
             args: standard Exception arguments
         """
-        program = f"Following program could not be launched: {program}\nProbably not installed!"
-        super().__init__(program, args)
+        self.program = program
+        self.message = f"Following program could not be launched: {program}\nProbably not installed!"
+        super().__init__(self.message, args)

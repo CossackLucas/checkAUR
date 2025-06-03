@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import dotenv
+from checkAUR.common.data_classes import EnvVariables
 
 def set_aur_path(aur_path: Path) -> bool:
     """Set localization of the private AUR folders
@@ -60,31 +61,28 @@ def setting_env_variable(aur_path: Path):
     dotenv.set_key(env_path, "aur_path", aur_path.as_posix())
 
 
-def load_env() -> Path:
+def load_env() -> EnvVariables:
     """load required environment variables
 
     Raises:
         EnvironmentError: if it's not possible to find required variables
 
     Returns:
-        Path: path to AUR directory
+        EnvVariables: typed dictionary of environmental variables
     """
+    env_exception = None
     try:
         env_file = dotenv.find_dotenv(raise_error_if_not_found=True)
     except IOError as exc:
-        env_var = os.environ.get("aur_path")
-        if env_var is None:
-            message = ".env file not found!"
-            logging.critical(message)
-            print(message)
-            raise EnvironmentError("Environament variable could not be extracted") from exc
-        return Path(env_var)
+        env_exception = exc
+    else:
+        dotenv.load_dotenv(env_file)
 
-    dotenv.load_dotenv(env_file)
     env_var = os.environ.get("aur_path")
     if env_var is None:
-        message = "'aur_path' not in the enviroment variables! Use checkAUR -s"
+        message = ".env file not found!"
         logging.critical(message)
         print(message)
-        raise EnvironmentError("Environament variable could not be extracted")
-    return Path(env_var)
+        raise EnvironmentError("Environament variable could not be extracted") from env_exception
+
+    return EnvVariables(aur_path=Path(env_var))

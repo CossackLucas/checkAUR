@@ -26,7 +26,7 @@ def compare_packages(pulled_packages: PackageData, invalid_packages: PackageData
         print("All packages marked by checkrebuild are among updated")
         return
 
-    print("Invalid packages, marked by checkruild and not updated:")
+    print("Invalid packages, marked by checkrebuild and not updated:")
     for package in result:
         print(package)
 

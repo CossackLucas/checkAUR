@@ -5,6 +5,8 @@ import os
 import pytest
 
 from checkAUR.aur_path import set_aur_path, setting_env_variable # type: ignore [import-untyped]
+from checkAUR.aur_path import load_env # type: ignore [import-untyped]
+from checkAUR.common.data_classes import EnvVariables # type: ignore [import-untyped]
 
 
 ROOT_PATH = Path("/")
@@ -112,3 +114,49 @@ def test_different_paths(monkeypatch, input_path, result, request):
     if isinstance(input_path, str) and "on_drive" in input_path:
         input_path = request.getfixturevalue(input_path)
     assert set_aur_path(input_path) == result
+
+
+@pytest.mark.parametrize("dotenv_status, variable_status", [
+    (True, False),
+    (False, False)
+], scope="function")
+def test_load_env_error(monkeypatch, dotenv_status, variable_status):
+    """tests for errors in loading environment variables
+    """
+    def mock_find_dotenv(**_):
+        if not dotenv_status:
+            raise IOError
+
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", mock_find_dotenv)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.load_dotenv", lambda *_: "/")
+    if variable_status:
+        monkeypatch.setenv("aur_path", "value")
+    else:
+        monkeypatch.delenv("aur_path", raising=False)
+    with pytest.raises(EnvironmentError):
+        load_env()
+
+
+@pytest.mark.parametrize("dotenv_status, env_status", [
+    (True, True),
+    (True, False),
+    (False, True),
+], scope="function")
+def test_load_env(monkeypatch, dotenv_status, env_status):
+    """tests for loading environment variables
+    """
+    def mock_find_dotenv(**_):
+        if not dotenv_status:
+            raise IOError
+
+    def mock_load_dotenv(*_):
+        if not env_status:
+            monkeypatch.setenv("aur_path", "/")
+
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", mock_find_dotenv)
+    monkeypatch.setattr("checkAUR.aur_path.dotenv.load_dotenv", mock_load_dotenv)
+    if env_status:
+        monkeypatch.setenv("aur_path", "/")
+    else:
+        monkeypatch.delenv("aur_path")
+    assert load_env() == EnvVariables(aur_path=Path("/"))
