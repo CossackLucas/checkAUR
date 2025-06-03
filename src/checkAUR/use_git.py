@@ -12,6 +12,19 @@ from checkAUR.common.custom_logging import logger
 from checkAUR.common.exceptions import ProgramNotInstalledError
 
 
+def check_pkg_build(repo_path: Path) -> bool:
+    """check if under given directory there is an PKGBUILD file
+
+    Args:
+        repo_path (Path): path to potential repo
+
+    Returns:
+        bool: True if there is PKGBUILD file under given path
+    """
+    pkgbuild_file = repo_path / "PKGBUILD"
+    return bool(pkgbuild_file.exists() and pkgbuild_file.is_file())
+
+
 def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     """check if repo has parameters expected from AUR
 
@@ -31,9 +44,13 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     try:
         repo = Repo(repo_path.as_posix())
     except git.exc.InvalidGitRepositoryError as exc:
-        raise OSError(f"No repo in {repo_path.as_posix()}") from exc
+        message = f"No repo in {repo_path.as_posix()}"
+        logging.error(message)
+        raise OSError(message) from exc
     except git.exc.NoSuchPathError as exc:
-        raise ValueError("Given directory does not exist") from exc
+        message = f"Given directory {repo_path.as_posix()} does not exist"
+        logging.error(message)
+        raise ValueError(message) from exc
     except git.exc.GitCommandNotFound as exc:
         message = "Git not installed!"
         print(message)
@@ -50,6 +67,12 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
         message = "The repo does not have the origin"
         print(message)
         logger.warning(message)
+        return None
+
+    if not check_pkg_build(repo_path):
+        message = "The repo does not have PKGBUILD file"
+        print(message)
+        logging.warning(message)
         return None
 
     return repo
@@ -77,6 +100,7 @@ def pull_repo(repo_path: Path) -> bool:
 
     if repo is None:
         return False
+
     result = repo.remotes.origin.fetch()
     if result[0].commit.hexsha == repo.head.commit.hexsha:
         return False

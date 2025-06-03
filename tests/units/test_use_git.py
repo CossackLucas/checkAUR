@@ -87,7 +87,7 @@ class MockRepo:
         return MockCommit(self.commit)
 
 
-@pytest.mark.parametrize("bare,origin, result", [
+@pytest.mark.parametrize("bare, origin, result", [
     (False, True, True),    # bare: if repo is bare repository, origin: if origin exists, result: if repo is returned or None
     (False, False, False),
     (True, True, False),
@@ -100,6 +100,8 @@ def test_repo_types(monkeypatch, bare, origin, result):
         return MockRepo(bare, origin)
 
     monkeypatch.setattr("checkAUR.use_git.Repo", mock_repo_init)
+    # Todo: should it be checked?
+    monkeypatch.setattr("checkAUR.use_git.check_pkg_build", lambda *_: True)
     if result:
         assert check_if_correct_repo(ROOT_PATH) == MockRepo(bare, origin)
     else:
