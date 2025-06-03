@@ -49,9 +49,8 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
     except UnicodeError as exc:
         raise UnicodeError("stdout could not be converted to string") from exc
     search_result = re.findall(r"(foreign)\t(.+)\n", conversion)
-    result: list[str] = []
-    for element in search_result:
-        result.append(element[1])
+    result: list[str] = [element[1] for element in search_result]
+
     return tuple(result)
 
 

@@ -11,6 +11,7 @@ import git.exc
 
 from checkAUR.common.exceptions import ProgramNotInstalledError
 
+
 def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     """check if repo has parameters expected from AUR
 
@@ -87,15 +88,8 @@ def pull_entire_aur(aur_path: Path) -> tuple[str,...]:
     """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
-    repo_list = []
-    for element in folder_list:
-        checked_path = aur_path / element
-        if checked_path.is_dir():
-            repo_list.append(checked_path)
+    repo_list: list[Path] = [(aur_path / element) for element in folder_list if (aur_path/element).is_dir()]
 
-    update_packages: list[str] = []
-    for repo in repo_list:
-        if pull_repo(repo):
-            update_packages.append(repo.stem)
+    update_packages: list[str] = [repo.stem for repo in repo_list if pull_repo(repo)]
 
     return tuple(update_packages)

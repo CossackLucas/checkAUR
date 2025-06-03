@@ -41,9 +41,6 @@ def compare_invalid_packages(pulled_packages: PackageData, invalid_packages: Pac
     Returns:
         PackageData: tuple of packages among the invalid packages, but not updated by Git
     """
-    result: list[str] = []
-    for package in invalid_packages:
-        if package not in pulled_packages:
-            result.append(package)
+    result: list[str] = [package for package in invalid_packages if package not in pulled_packages]
 
     return tuple(result)
