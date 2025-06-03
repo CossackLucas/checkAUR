@@ -67,7 +67,7 @@ def load_env() -> Path:
         EnvironmentError: if it's not possible to find required variables
 
     Returns:
-        Path: _description_
+        Path: path to AUR directory
     """
     try:
         env_file = dotenv.find_dotenv(raise_error_if_not_found=True)
@@ -75,7 +75,7 @@ def load_env() -> Path:
         env_var = os.environ.get("aur_path")
         if env_var is None:
             message = ".env file not found!"
-            logging.error(message)
+            logging.critical(message)
             print(message)
             raise EnvironmentError("Environament variable could not be extracted") from exc
         return Path(env_var)
@@ -84,7 +84,7 @@ def load_env() -> Path:
     env_var = os.environ.get("aur_path")
     if env_var is None:
         message = "'aur_path' not in the enviroment variables! Use checkAUR -s"
-        logging.error(message)
+        logging.critical(message)
         print(message)
         raise EnvironmentError("Environament variable could not be extracted")
     return Path(env_var)

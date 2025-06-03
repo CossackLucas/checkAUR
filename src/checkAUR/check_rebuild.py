@@ -4,6 +4,8 @@ import subprocess
 import logging
 import re
 
+from checkAUR.common.exceptions import ProgramNotInstalledError
+
 
 def check_rebuild() -> tuple[str,...]:
     """check AUR packages requiring updates
@@ -11,15 +13,16 @@ def check_rebuild() -> tuple[str,...]:
     Returns:
         tuple[str,...]: tuple of packages requiring updates
     Raises:
+        ProgramNotInstalledError: if checkrebuild is not available
         UnicodeError: if it's not possible to convert stdout to string
     """
     try:
         result = subprocess.run("checkrebuild", shell=True, capture_output=True, check=True)
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as exc:
         message = "checkrebuild not available"
         print(message)
-        logging.warning(message)
-        return ()
+        logging.error(message)
+        raise ProgramNotInstalledError("rebuild-detector") from exc
     stdout: bytes = result.stdout
     try:
         packages: tuple[str,...] = extract_packages(stdout)

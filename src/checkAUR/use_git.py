@@ -9,6 +9,8 @@ import os
 from git import Repo
 import git.exc
 
+from checkAUR.common.exceptions import ProgramNotInstalledError
+
 def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     """check if repo has parameters expected from AUR
 
@@ -30,6 +32,11 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
         raise OSError(f"No repo in {repo_path.as_posix()}") from exc
     except git.exc.NoSuchPathError as exc:
         raise ValueError("Given directory does not exist") from exc
+    except git.exc.GitCommandNotFound as exc:
+        message = "Git not installed!"
+        print(message)
+        logging.critical(message)
+        raise ProgramNotInstalledError("Git") from exc
 
     if repo.bare:
         message = "The repo is bare"

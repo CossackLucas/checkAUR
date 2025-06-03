@@ -11,6 +11,7 @@ from checkAUR.check_rebuild import check_rebuild, print_invalid_packages
 from checkAUR.aur_path import load_env
 from checkAUR.use_git import pull_entire_aur
 from checkAUR.compare_packages import compare_packages
+from checkAUR.common.exceptions import ProgramNotInstalledError
 
 
 def copy_aur_wd(aur_path: Path) -> None:
@@ -34,19 +35,18 @@ def run_main(ignore=False):
     Args:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
         fetch (bool, optional): if only git fetch should be used. Defaults to False.
-
-    Raises:
-        NotImplementedError: _description_
     """
     if ignore:
         logging.debug("Running checkrebuild")
         try:
             invalid_packages = check_rebuild()
         except UnicodeError:
-            message = "Error during analysis of checkrebuild results! Closing..."
+            message = "Error during analysis of checkrebuild results! The step will be skipped"
             print(message)
-            logging.critical(message)
-            return
+            logging.error(message)
+        except ProgramNotInstalledError as exc:
+            print(str(exc))
+            print("Check if it's installed, install it using pacman or use -i flag. The step will be skipped")
         logging.debug("Search results:")
         logging.debug(invalid_packages)
         print_invalid_packages(invalid_packages)
