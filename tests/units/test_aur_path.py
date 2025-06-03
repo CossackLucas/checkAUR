@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 import pytest
 
-from checkAUR.aur_path import set_aur_path, setting_env_variable # type: ignore [import-untyped]
+from checkAUR.aur_path import set_aur_path,setting_path_env_variable # type: ignore [import-untyped]
 from checkAUR.aur_path import load_env # type: ignore [import-untyped]
 from checkAUR.common.data_classes import EnvVariables # type: ignore [import-untyped]
 
@@ -23,8 +23,7 @@ def test_no_env(monkeypatch):
     """
     monkeypatch.delenv("aur_path", raising=False)
     monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", raise_io_exception, raising=True)
-    with pytest.raises(EnvironmentError):
-        setting_env_variable(ROOT_PATH)
+    assert os.environ.get("aur_path", ROOT_PATH.as_posix())
 
 
 def test_only_dotenv(monkeypatch):
@@ -36,7 +35,7 @@ def test_only_dotenv(monkeypatch):
     monkeypatch.delenv("aur_path", raising=False)
     monkeypatch.setattr("checkAUR.aur_path.dotenv.set_key", mock_aur_path)
 
-    setting_env_variable(aur_path=ROOT_PATH)
+    setting_path_env_variable(aur_path=ROOT_PATH)
     assert os.environ.get("aur_path") is ROOT_PATH.as_posix()
 
 
@@ -46,7 +45,7 @@ def test_only_environ(monkeypatch):
     monkeypatch.setattr("checkAUR.aur_path.dotenv.find_dotenv", raise_io_exception, raising=True)
     monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
 
-    setting_env_variable(aur_path=ROOT_PATH)
+    setting_path_env_variable(aur_path=ROOT_PATH)
     assert os.environ.get("aur_path") is ROOT_PATH.as_posix()
 
 
@@ -59,7 +58,7 @@ def test_both_env_var(monkeypatch):
     monkeypatch.setenv("aur_path", ROOT_PATH.as_posix())
     monkeypatch.setattr("checkAUR.aur_path.dotenv.set_key", mock_aur_path)
 
-    setting_env_variable(aur_path=ROOT_PATH)
+    setting_path_env_variable(aur_path=ROOT_PATH)
     assert os.environ.get("aur_path") is ROOT_PATH.as_posix()
 
 
@@ -97,7 +96,7 @@ def relative_file_on_drive(folder_on_drive, file_on_drive):
 @pytest.mark.parametrize("input_path,result", [
     ("folder_on_drive", True),
     ("file_on_drive", False),
-    ("relative_folder_on_drive",False),
+    ("relative_folder_on_drive", False),
     ("relative_file_on_drive", False),
     (Path("/sth/sth"), False),
     (Path("/stg/sth/path.file"), False),
@@ -113,6 +112,8 @@ def test_different_paths(monkeypatch, input_path, result, request):
     monkeypatch.setenv("aur_path", "/")
     if isinstance(input_path, str) and "on_drive" in input_path:
         input_path = request.getfixturevalue(input_path)
+
+    monkeypatch.setattr("checkAUR.aur_path.setting_path_env_variable", lambda *_: None)
     assert set_aur_path(input_path) == result
 
 

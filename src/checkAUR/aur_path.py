@@ -33,33 +33,26 @@ def set_aur_path(aur_path: Path) -> bool:
         print(message)
         return False
 
-    setting_env_variable(aur_path)
+    setting_path_env_variable(aur_path)
     return True
 
 
-def setting_env_variable(aur_path: Path):
+def setting_path_env_variable(aur_path: Path):
     """set environment variable for local AUR repo
 
     Args:
         aur_path (Path): path to the AUR folder
-
-    Raises:
-        EnvironmentError: if neither .env file nor environment variable could be find
     """
-    # Todo: probably should check .env first and then add env variable anyway
-    env_var = os.environ.get("aur_path")
-    if env_var is not None:
-        os.environ["aur_path"] = aur_path.as_posix()
-        return
     try:
         env_path = dotenv.find_dotenv(raise_error_if_not_found=True)
-    except IOError as exc:
-        message = ".env file not found!"
-        logging.error(message)
-        print(message)
-        raise EnvironmentError("Environament variable could not be set") from exc
+    except IOError:
+        pass
+    else:
+        dotenv.load_dotenv(env_path)
+        dotenv.set_key(env_path, "aur_path", aur_path.as_posix())
+        return
 
-    dotenv.set_key(env_path, "aur_path", aur_path.as_posix())
+    os.environ["aur_path"] = aur_path.as_posix()
 
 
 def load_env() -> EnvVariables:
