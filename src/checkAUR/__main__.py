@@ -29,29 +29,32 @@ def copy_aur_wd(aur_path: Path) -> None:
     print("Command to get to AUR folder was copied into the clipboard.")
 
 
-def run_main(ignore=False):
+def run_main(ignore=False) -> None:
     """run main program sequence
 
     Args:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
-        fetch (bool, optional): if only git fetch should be used. Defaults to False.
     """
     if ignore:
         logging.debug("Running checkrebuild")
         try:
+            print("Starting check-rebuild...")
             invalid_packages = check_rebuild()
         except UnicodeError:
             message = "Error during analysis of checkrebuild results! The step will be skipped"
             print(message)
             logging.error(message)
+            invalid_packages = ()
         except ProgramNotInstalledError as exc:
             print(str(exc))
             print("Check if it's installed, install it using pacman or use -i flag. The step will be skipped")
+            invalid_packages = ()
         logging.debug("Search results:")
         logging.debug(invalid_packages)
         print_invalid_packages(invalid_packages)
     else:
         invalid_packages = ()
+
     try:
         env_variables = load_env()
         aur_path = env_variables.aur_path
@@ -59,10 +62,16 @@ def run_main(ignore=False):
         return
 
     logging.debug("Starting pulling repos")
-    pulled_packages = pull_entire_aur(aur_path)
+    try:
+        pulled_packages = pull_entire_aur(aur_path)
+    except ProgramNotInstalledError:
+        print("Closing...")
+        return
+
     count_pulled_packages = len(pulled_packages)
     logging.debug("%s repos pulled", count_pulled_packages)
     compare_packages(pulled_packages, invalid_packages)
+
     if len(pulled_packages) != 0 or len(invalid_packages) != 0:
         copy_aur_wd(aur_path)
 

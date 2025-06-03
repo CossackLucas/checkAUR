@@ -25,11 +25,9 @@ def check_rebuild() -> tuple[str,...]:
         raise ProgramNotInstalledError("rebuild-detector") from exc
     stdout: bytes = result.stdout
     try:
-        packages: tuple[str,...] = extract_packages(stdout)
+        return extract_packages(stdout)
     except UnicodeError as exc:
         raise UnicodeError from exc
-
-    return packages
 
 
 def extract_packages(stdout: bytes) -> tuple[str,...]:
@@ -49,9 +47,8 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
     except UnicodeError as exc:
         raise UnicodeError("stdout could not be converted to string") from exc
     search_result = re.findall(r"(foreign)\t(.+)\n", conversion)
-    result: list[str] = [element[1] for element in search_result]
+    return tuple(element[1] for element in search_result)
 
-    return tuple(result)
 
 
 def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
@@ -63,7 +60,7 @@ def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
     logging.debug("Printing package list")
     print("AUR packages with issues:")
     for package in invalid_packages:
-        print(package)
+        print(f"\t{package}")
 
 
 if __name__ == "__main__":

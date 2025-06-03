@@ -44,8 +44,9 @@ def setting_env_variable(aur_path: Path):
         aur_path (Path): path to the AUR folder
 
     Raises:
-        IOError: if neither .env file nor environment variable could be find
+        EnvironmentError: if neither .env file nor environment variable could be find
     """
+    # Todo: probably should check .env first and then add env variable anyway
     env_var = os.environ.get("aur_path")
     if env_var is not None:
         os.environ["aur_path"] = aur_path.as_posix()
@@ -68,7 +69,7 @@ def load_env() -> EnvVariables:
         EnvironmentError: if it's not possible to find required variables
 
     Returns:
-        EnvVariables: typed dictionary of environmental variables
+        EnvVariables: NamedTuple of environmental variables
     """
     env_exception = None
     try:

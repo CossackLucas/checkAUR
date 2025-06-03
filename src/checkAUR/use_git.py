@@ -21,9 +21,10 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     Raises:
         OSError: if no repo in the directory
         ValueError: if no directory at the path
+        ProgramNotInstalledError: if Git is not installed
 
     Returns:
-        Optiona[Repo]: Repo object if it's corrent, None if it's not
+        Optional[Repo]: Repo object if it's correct, None if it's not
     """
     assert isinstance(repo_path, Path)
     logging.debug("Checking repo in %s", repo_path.as_posix())
@@ -62,9 +63,18 @@ def pull_repo(repo_path: Path) -> bool:
 
     Returns:
         bool: True if operation was successful, False if not
+    
+    Raises:
+        ProgramNotInstalledError: if Git is not installed
     """
     assert isinstance(repo_path, Path)
-    repo = check_if_correct_repo(repo_path)
+    try:
+        repo = check_if_correct_repo(repo_path)
+    except (OSError, ValueError):
+        return False
+    except ProgramNotInstalledError as exc:
+        raise ProgramNotInstalledError(exc.program) from exc
+
     if repo is None:
         return False
     result = repo.remotes.origin.fetch()
@@ -88,8 +98,9 @@ def pull_entire_aur(aur_path: Path) -> tuple[str,...]:
     """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
-    repo_list: list[Path] = [(aur_path / element) for element in folder_list if (aur_path/element).is_dir()]
+    repo_list: tuple[Path,...] = tuple(checked_path for element in folder_list if (checked_path := aur_path/element).is_dir())
 
-    update_packages: list[str] = [repo.stem for repo in repo_list if pull_repo(repo)]
-
-    return tuple(update_packages)
+    try:
+        return tuple(repo.stem for repo in repo_list if pull_repo(repo))
+    except ProgramNotInstalledError as exc:
+        raise ProgramNotInstalledError(exc.program) from exc
