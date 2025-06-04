@@ -8,21 +8,21 @@ import re
 from checkAUR.common.package import Package
 
 
-def extract_local_packages() -> set[Package]:
+def extract_local_packages() -> tuple[Package,...]:
     """use pacman query to get locally installed packages (outside of repos)
 
     Raises:
         UnicodeError: if stdout from pacman could not be read as string
 
     Returns:
-        set[Package]: packages installed locally
+        tuple[Package]: packages installed locally
     """
     query_result = subprocess.run("pacman -Qm", shell=True, capture_output=True, check=True)
     try:
         decoded_string = query_result.stdout.decode(encoding="utf-8")
     except UnicodeDecodeError as exc:
         raise UnicodeError from exc
-    return set(package for package_string in decoded_string.split(sep="\n") if (package := _extract_package_name(package_string)) is not None)
+    return tuple(package for package_string in decoded_string.split(sep="\n") if (package := _extract_package_name(package_string)) is not None)
 
 
 _package_name_pattern = re.compile(r"(.+)( )(.+)(-\d+)")

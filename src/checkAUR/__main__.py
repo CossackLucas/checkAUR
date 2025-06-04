@@ -10,9 +10,11 @@ from checkAUR.check_user import check_if_root
 from checkAUR.check_rebuild import check_rebuild, print_invalid_packages
 from checkAUR.aur_path import load_env
 from checkAUR.use_git import pull_entire_aur
-from checkAUR.compare_packages import compare_packages
+from checkAUR.compare_packages import show_results
 from checkAUR.common.exceptions import ProgramNotInstalledError
-
+from checkAUR.common.package import read_enitre_repo_pkgbuild
+from checkAUR.pacman import extract_local_packages
+from checkAUR.common.data_classes import TuplePackages
 
 def copy_aur_wd(aur_path: Path) -> None:
     """copy 'cd /aur/path' command into clipboard. Current solution to cwd problem
@@ -35,7 +37,8 @@ def run_main(ignore=False) -> None:
     Args:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
     """
-    if ignore:
+    invalid_packages: tuple[str,...]
+    if not ignore:
         logger.debug("Running checkrebuild")
         try:
             print("Starting check-rebuild...")
@@ -61,18 +64,25 @@ def run_main(ignore=False) -> None:
     except EnvironmentError:
         return
 
-    logger.debug("Starting pulling repos")
+    message = "Starting pulling repos"
+    print(message)
+    logger.debug(message)
     try:
         pulled_packages = pull_entire_aur(aur_path)
     except ProgramNotInstalledError:
         print("Closing...")
         return
+    logger.debug("%s repos pulled", len(pulled_packages))
 
-    count_pulled_packages = len(pulled_packages)
-    logger.debug("%s repos pulled", count_pulled_packages)
-    compare_packages(pulled_packages, invalid_packages)
+    aur_packages = read_enitre_repo_pkgbuild(aur_path)
+    pacman_packages = extract_local_packages()
+    results = TuplePackages(aur_packages=aur_packages,
+        pacman_packages=pacman_packages,
+        pulled_packages=pulled_packages,
+        invalid_packages=invalid_packages
+    )
 
-    if len(pulled_packages) != 0 or len(invalid_packages) != 0:
+    if show_results(results):
         copy_aur_wd(aur_path)
 
 
