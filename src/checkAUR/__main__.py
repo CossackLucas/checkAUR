@@ -1,11 +1,11 @@
 """Main for checkAUR
 """
 
-import logging
 from pathlib import Path
 
 import pyperclip # type: ignore [import-untyped]
 
+from checkAUR.common.custom_logging import logger
 from checkAUR.check_user import check_if_root
 from checkAUR.check_rebuild import check_rebuild, print_invalid_packages
 from checkAUR.aur_path import load_env
@@ -36,21 +36,21 @@ def run_main(ignore=False) -> None:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
     """
     if ignore:
-        logging.debug("Running checkrebuild")
+        logger.debug("Running checkrebuild")
         try:
             print("Starting check-rebuild...")
             invalid_packages = check_rebuild()
         except UnicodeError:
             message = "Error during analysis of checkrebuild results! The step will be skipped"
             print(message)
-            logging.error(message)
+            logger.error(message)
             invalid_packages = ()
         except ProgramNotInstalledError as exc:
             print(str(exc))
             print("Check if it's installed, install it using pacman or use -i flag. The step will be skipped")
             invalid_packages = ()
-        logging.debug("Search results:")
-        logging.debug(invalid_packages)
+        logger.debug("Search results:")
+        logger.debug(invalid_packages)
         print_invalid_packages(invalid_packages)
     else:
         invalid_packages = ()
@@ -61,7 +61,7 @@ def run_main(ignore=False) -> None:
     except EnvironmentError:
         return
 
-    logging.debug("Starting pulling repos")
+    logger.debug("Starting pulling repos")
     try:
         pulled_packages = pull_entire_aur(aur_path)
     except ProgramNotInstalledError:
@@ -69,7 +69,7 @@ def run_main(ignore=False) -> None:
         return
 
     count_pulled_packages = len(pulled_packages)
-    logging.debug("%s repos pulled", count_pulled_packages)
+    logger.debug("%s repos pulled", count_pulled_packages)
     compare_packages(pulled_packages, invalid_packages)
 
     if len(pulled_packages) != 0 or len(invalid_packages) != 0:
@@ -79,13 +79,7 @@ def run_main(ignore=False) -> None:
 def main():
     """Main function for checkAUR
     """
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-        filename="logs.log",
-        filemode="a"
-    )
-    logging.debug("Check user type")
+    logger.debug("Main interface start")
     if check_if_root():
         return
     run_main()

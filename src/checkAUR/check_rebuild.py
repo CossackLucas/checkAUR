@@ -1,9 +1,9 @@
 """Module responsible for using checkrebuild
 """
 import subprocess
-import logging
 import re
 
+from checkAUR.common.custom_logging import logger
 from checkAUR.common.exceptions import ProgramNotInstalledError
 
 
@@ -21,7 +21,7 @@ def check_rebuild() -> tuple[str,...]:
     except subprocess.CalledProcessError as exc:
         message = "checkrebuild not available"
         print(message)
-        logging.error(message)
+        logger.error(message)
         raise ProgramNotInstalledError("rebuild-detector") from exc
     stdout: bytes = result.stdout
     try:
@@ -57,7 +57,7 @@ def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
     Args:
         invalid_packages (tuple[str,...]): tuple of invalid packages
     """
-    logging.debug("Printing package list")
+    logger.debug("Printing package list")
     print("AUR packages with issues:")
     for package in invalid_packages:
         print(f"\t{package}")

@@ -3,12 +3,12 @@
 
 from typing import Optional
 from pathlib import Path
-import logging
 import os
 
 from git import Repo
 import git.exc
 
+from checkAUR.common.custom_logging import logger
 from checkAUR.common.exceptions import ProgramNotInstalledError
 
 
@@ -27,7 +27,7 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
         Optional[Repo]: Repo object if it's correct, None if it's not
     """
     assert isinstance(repo_path, Path)
-    logging.debug("Checking repo in %s", repo_path.as_posix())
+    logger.debug("Checking repo in %s", repo_path.as_posix())
     try:
         repo = Repo(repo_path.as_posix())
     except git.exc.InvalidGitRepositoryError as exc:
@@ -37,19 +37,19 @@ def check_if_correct_repo(repo_path: Path) -> Optional[Repo]:
     except git.exc.GitCommandNotFound as exc:
         message = "Git not installed!"
         print(message)
-        logging.critical(message)
+        logger.critical(message)
         raise ProgramNotInstalledError("Git") from exc
 
     if repo.bare:
         message = "The repo is bare"
         print(message)
-        logging.warning(message)
+        logger.warning(message)
         return None
 
     if not repo.remotes.origin.exists():
         message = "The repo does not have the origin"
         print(message)
-        logging.warning(message)
+        logger.warning(message)
         return None
 
     return repo

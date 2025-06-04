@@ -1,11 +1,12 @@
 """Modul responsible for setting the localization
 """
 
-import logging
 import os
 from pathlib import Path
 
 import dotenv
+
+from checkAUR.common.custom_logging import logger
 from checkAUR.common.data_classes import EnvVariables
 
 def set_aur_path(aur_path: Path) -> bool:
@@ -19,17 +20,17 @@ def set_aur_path(aur_path: Path) -> bool:
     """
     if not isinstance(aur_path, Path):
         message = "The given path for AUR was not proper Path!"
-        logging.error(message)
+        logger.error(message)
         print(message)
         return False
     if not aur_path.is_absolute():
         message = "The path has to be absolute!"
-        logging.error(message)
+        logger.error(message)
         print(message)
         return False
     if not aur_path.is_dir():
         message = "The path does not lead to a folder!"
-        logging.error(message)
+        logger.error(message)
         print(message)
         return False
 
@@ -75,7 +76,7 @@ def load_env() -> EnvVariables:
     env_var = os.environ.get("aur_path")
     if env_var is None:
         message = ".env file not found!"
-        logging.critical(message)
+        logger.critical(message)
         print(message)
         raise EnvironmentError("Environament variable could not be extracted") from env_exception
 
