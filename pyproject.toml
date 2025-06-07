@@ -1,7 +1,10 @@
 [project]
 name = "checkAUR"
+authors = [
+  { name = "Łukasz Kozak", email = "lakis.kozak@gmail.com" }
+]
 requires-python = ">=3.12"
-version = "0.3.0"
+dynamic = ["version"]
 license = "MIT"
 dependencies = [
   "GitPython",
@@ -9,11 +12,17 @@ dependencies = [
   "pyperclip"
 ]
 
+[project.urls]
+Homepage = "https://github.com/CossackLucas/checkAUR"
+
 [project.scripts]
 checkAUR = "checkAUR.scripts.run:main_cli"
 
 [tool.uv]
 environments = [ "sys_platform = 'linux'" ]
+
+[tool.setuptools.dynamic]
+version = { attr = "checkAUR.__version__" }
 
 [project.optional-dependencies]
 dev = [

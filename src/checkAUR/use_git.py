@@ -4,6 +4,7 @@
 from typing import Optional
 from pathlib import Path
 import os
+import concurrent.futures
 
 from git import Repo
 import git.exc
@@ -123,9 +124,16 @@ def pull_entire_aur(aur_path: Path) -> tuple[Package,...]:
     """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
-    repo_list: tuple[Path,...] = tuple(checked_path for element in folder_list if (checked_path := aur_path/element).is_dir())
+    repo_list: tuple[Path,...] = tuple(checked_path for element in folder_list if (checked_path := aur_path/element).is_dir(follow_symlinks=False))
 
-    try:
-        return tuple(read_pkgbuild(repo) for repo in repo_list if pull_repo(repo))
-    except ProgramNotInstalledError as exc:
-        raise ProgramNotInstalledError(exc.program) from exc
+    pull_result = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        git_futures = {executor.submit(pull_repo, repo_path): repo_path for repo_path in repo_list}
+        for future in concurrent.futures.as_completed(git_futures):
+            try:
+                if future.result():
+                    repo = git_futures[future]
+                    pull_result.append(read_pkgbuild(repo))
+            except ProgramNotInstalledError as exc:
+                raise ProgramNotInstalledError(exc.program) from exc
+    return tuple(pull_result)
