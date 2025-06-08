@@ -17,7 +17,9 @@ def check_rebuild() -> tuple[str,...]:
         UnicodeError: if it's not possible to convert stdout to string
     """
     try:
-        result = subprocess.run("checkrebuild", shell=True, capture_output=True, check=True)
+        result: subprocess.CompletedProcess = subprocess.run("checkrebuild",
+            shell=True, capture_output=True, check=True
+        )
     except subprocess.CalledProcessError as exc:
         message = "checkrebuild not available"
         print(message)
@@ -46,7 +48,7 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
         conversion: str = stdout.decode(encoding="utf-8", errors="strict")
     except UnicodeError as exc:
         raise UnicodeError("stdout could not be converted to string") from exc
-    search_result = re.findall(r"(foreign)\t(.+)\n", conversion)
+    search_result: list[re.Match] = re.findall(r"(foreign)\t(.+)\n", conversion)
     return tuple(element[1] for element in search_result)
 
 

@@ -1,7 +1,7 @@
 """Module for Package class
 """
 
-from typing import Self, Optional
+from typing import Self, Optional, Final
 from dataclasses import dataclass
 import subprocess
 import re
@@ -29,8 +29,8 @@ class Package:
     version: str
 
     def __post_init__(self):
-        """Potential place for data validation
-        """
+        # Hack to go over inconsitencies in PKGBUILDs and pacman
+        object.__setattr__(self, "version", self.version.replace("-", "_"))
 
     def __str__(self):
         return self.name + " " + self.version
@@ -45,11 +45,11 @@ class Package:
         match operation:
             case ">" if result > 0:
                 pass
-            case ">=" if result > 0 or result == 0:
+            case ">=" if result >= 0:
                 pass
             case "<" if result < 0:
                 pass
-            case "<=" if result < 0 or result == 0:
+            case "<=" if result <= 0:
                 pass
             case _:
                 return False
@@ -84,8 +84,8 @@ def find_package(package_name:str, packages: tuple[Package,...]) -> Optional[Pac
     return None
 
 
-VERSION_PATTERN = re.compile("pkgver=(.*)\n")
-EPOCH_PATTERN = re.compile("epoch=(.*)\n")
+VERSION_PATTERN: Final[re.Pattern] = re.compile("pkgver=(.*)\n")
+EPOCH_PATTERN: Final[re.Pattern] = re.compile("epoch=(.*)\n")
 
 
 def read_version_pkgbuild(repo_path: Path) -> str:
@@ -110,12 +110,9 @@ def read_version_pkgbuild(repo_path: Path) -> str:
 
             search_result = re.search(VERSION_PATTERN, line)
             if search_result is not None and result is None:
-                # Hack to go over inconsitencies in PKGBUILDs and pacman
-                result = search_result[1].replace("-", "_")
-    if epoch is None:
-        epoch = ""
-    else:
-        epoch += ":"
+                result = search_result[1]
+
+    epoch = "" if epoch is None else epoch + ":"
 
     if result is not None:
         return epoch + result
@@ -133,10 +130,19 @@ def read_pkgbuild(repo_path: Path) -> Package:
         Package: object describing the entire package
     """
     version = read_version_pkgbuild(repo_path)
+    # Todo: should name be taken from PKGBUILD?
     return Package(repo_path.stem, version)
 
 
 def read_enitre_repo_pkgbuild(aur_path: Path) -> tuple[Package,...]:
+    """read all packages from folder using PKGBUILD files as base
+
+    Args:
+        aur_path (Path): path to AUR repos folder
+
+    Returns:
+        tuple[Package,...]: packages found
+    """
     folder_list: list[str] = os.listdir(aur_path)
     repo_tuple: tuple[Path,...] = tuple((aur_path / folder) for folder in folder_list)
     return tuple(read_pkgbuild(repo) for repo in repo_tuple)

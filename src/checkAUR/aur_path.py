@@ -1,6 +1,7 @@
 """Modul responsible for setting the localization
 """
 
+from typing import Optional
 import os
 from pathlib import Path
 
@@ -65,15 +66,15 @@ def load_env() -> EnvVariables:
     Returns:
         EnvVariables: NamedTuple of environmental variables
     """
-    env_exception = None
+    env_exception: Optional[Exception] = None
     try:
-        env_file = dotenv.find_dotenv(raise_error_if_not_found=True)
+        env_file: str = dotenv.find_dotenv(raise_error_if_not_found=True)
     except IOError as exc:
         env_exception = exc
     else:
         dotenv.load_dotenv(env_file)
 
-    env_var = os.environ.get("aur_path")
+    env_var: Optional[str] = os.environ.get("aur_path")
     if env_var is None:
         message = ".env file not found!"
         logger.critical(message)

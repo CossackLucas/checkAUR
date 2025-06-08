@@ -22,8 +22,7 @@ def main_cli():
 
     parser = argparse.ArgumentParser(usage="%(prog)s [options]")
     parser.add_argument("-s", "--set", type=Path, nargs=1, help="set AUR repos localization", metavar="/dir/path")
-    #parser.add_argument("-f", "--fetch", action="store_true", help="run fetch instead of pull")
-    parser.add_argument("-i", "--ignore", action="store_true", help="ignore checkrebuild command")
+    parser.add_argument("-i", "--ignore", action="store_false", help="ignore checkrebuild command")
 
     args = parser.parse_args()
     if args.set:

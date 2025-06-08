@@ -38,10 +38,10 @@ def run_main(ignore=False) -> None:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
     """
     invalid_packages: tuple[str,...]
-    if not ignore:
+    if ignore:
         logger.debug("Running checkrebuild")
         try:
-            print("Starting check-rebuild...")
+            print("Starting checkrebuild...")
             invalid_packages = check_rebuild()
         except UnicodeError:
             message = "Error during analysis of checkrebuild results! The step will be skipped"

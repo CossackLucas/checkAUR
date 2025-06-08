@@ -8,6 +8,7 @@ import pytest
 import git.exc
 
 from checkAUR.use_git import check_if_correct_repo, pull_repo, pull_entire_aur # type: ignore [import-untyped]
+from checkAUR.common.package import Package # type: ignore [import-untyped]
 
 
 ROOT_PATH = Path("/")
@@ -137,8 +138,6 @@ def test_pull_single_repo_exception(monkeypatch):
     assert pull_repo(ROOT_PATH) is False
 
 
-# Fails after changes in pull_entire_aur, should probably be rewritten!
-@pytest.mark.xfail
 @pytest.mark.parametrize("packages, check, result", [
     (("package_1", "package_2", "package_3"), (True, True, True), ("package_1", "package_2", "package_3")),
     (("package_1", "package_2", "package_3"), (False, True, False), ("package_2",)),
@@ -156,5 +155,11 @@ def test_pull_entire_aur(monkeypatch, tmp_path, packages, check, result):
     def replace_pull_repo(path):
         return check[int(path.stem[-1])-1]
 
+    def replace_read_pkgbuild(path):
+        return Package(path.stem, "0.1")
+
     monkeypatch.setattr("checkAUR.use_git.pull_repo", replace_pull_repo)
-    assert pull_entire_aur(input_path) == result
+    monkeypatch.setattr("checkAUR.use_git.read_pkgbuild", replace_read_pkgbuild)
+    result = tuple(Package(package_name,"0.1") for package_name in result)
+    answer = tuple(sorted(pull_entire_aur(input_path), key=lambda x: x.name))
+    assert answer == result

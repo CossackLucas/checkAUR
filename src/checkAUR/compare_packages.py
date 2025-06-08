@@ -9,7 +9,9 @@ from checkAUR.common.data_classes import TuplePackages
 type PackageData = tuple[Package,...]
 
 
-def print_differences_packages(pulled_packages: PackageData, invalid_packages: tuple[str,...]) -> None:
+def print_differences_packages(pulled_packages: PackageData,
+    invalid_packages: tuple[str,...]
+) -> None:
     """print information on packages waiting for update and packages marked by checkrebuild
 
     Args:
@@ -19,8 +21,8 @@ def print_differences_packages(pulled_packages: PackageData, invalid_packages: t
     if len(invalid_packages) == 0:
         return
 
-    pulled_names = set(package.name for package in pulled_packages)
-    result = compare_invalid_packages(pulled_names, invalid_packages)
+    pulled_names: set[str] = set(package.name for package in pulled_packages)
+    result: tuple[str,...] = compare_invalid_packages(pulled_names, invalid_packages)
     if len(result) == 0:
         print("All packages marked by checkrebuild are among the updated")
         return
@@ -30,7 +32,9 @@ def print_differences_packages(pulled_packages: PackageData, invalid_packages: t
         print(f"\t{data}")
 
 
-def compare_invalid_packages(pulled_packages: set[str], invalid_packages: tuple[str,...]) -> tuple[str,...]:
+def compare_invalid_packages(pulled_packages: set[str],
+    invalid_packages: tuple[str,...]
+) -> tuple[str,...]:
     """compare invalid packages with pulled packages
 
     Args:
@@ -72,23 +76,27 @@ def print_pulled_packages(pulled_packages: PackageData) -> None:
     """
     count_pulled_packages = len(pulled_packages)
     print(f"{count_pulled_packages} packages were pulled.")
-    if count_pulled_packages != 0:
-        for package in pulled_packages:
-            print(f"\t{package}")
+    if count_pulled_packages == 0:
+        return
+
+    for package in pulled_packages:
+        print(f"\t{package}")
 
 
-def print_awaiting_packages(compared_packages: PackageData) -> None:
+def print_awaiting_packages(compared_packages: PackageData, pacman_packages: PackageData) -> None:
     """print the list of packages awaiting an update
 
     Args:
         compared_packages (PackageData): tuple of all awaiting packages
+        pacman_packages (PackageData): tuple of all manually installed packages
     """
     if len(compared_packages) == 0:
         print("No updates detected")
         return
     print("Following AUR packages await an update:")
     for package in compared_packages:
-        print(f"\t{package.name}")
+        original_package = find_package(package.name, pacman_packages)
+        print(f"\t{original_package} to {package.version}")
 
 
 def show_results(operation_results: TuplePackages) -> bool:
@@ -102,8 +110,11 @@ def show_results(operation_results: TuplePackages) -> bool:
     """
     # Todo: there should be sth for AUR package groups!
     print_pulled_packages(operation_results.pulled_packages)
-    compared_packages = compare_packages(operation_results.aur_packages, operation_results.pacman_packages)
-    print_differences_packages(compared_packages, operation_results.invalid_packages) 
-    print_awaiting_packages(compared_packages)
+    compared_packages = compare_packages(
+        operation_results.aur_packages,
+        operation_results.pacman_packages
+    )
+    print_differences_packages(compared_packages, operation_results.invalid_packages)
+    print_awaiting_packages(compared_packages, operation_results.pacman_packages)
 
     return bool(len(compared_packages) != 0 or len(operation_results.invalid_packages) != 0)

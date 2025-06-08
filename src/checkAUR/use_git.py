@@ -94,7 +94,7 @@ def pull_repo(repo_path: Path) -> bool:
     """
     assert isinstance(repo_path, Path)
     try:
-        repo = check_if_correct_repo(repo_path)
+        repo: Optional[Repo] = check_if_correct_repo(repo_path)
     except (OSError, ValueError):
         return False
     except ProgramNotInstalledError as exc:
@@ -103,7 +103,7 @@ def pull_repo(repo_path: Path) -> bool:
     if repo is None:
         return False
 
-    result = repo.remotes.origin.fetch()
+    result: list[git.FetchInfo] = repo.remotes.origin.fetch()
     if result[0].commit.hexsha == repo.head.commit.hexsha:
         return False
     try:
@@ -124,15 +124,17 @@ def pull_entire_aur(aur_path: Path) -> tuple[Package,...]:
     """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
-    repo_list: tuple[Path,...] = tuple(checked_path for element in folder_list if (checked_path := aur_path/element).is_dir(follow_symlinks=False))
+    repo_list: tuple[Path,...] = tuple(checked_path for element in folder_list \
+        if (checked_path := aur_path/element).is_dir(follow_symlinks=False))
 
-    pull_result = []
+    pull_result: list[Package] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        git_futures = {executor.submit(pull_repo, repo_path): repo_path for repo_path in repo_list}
+        git_futures: dict[concurrent.futures.Future, Path] = \
+            {executor.submit(pull_repo, repo_path) : repo_path for repo_path in repo_list}
         for future in concurrent.futures.as_completed(git_futures):
             try:
                 if future.result():
-                    repo = git_futures[future]
+                    repo: Path = git_futures[future]
                     pull_result.append(read_pkgbuild(repo))
             except ProgramNotInstalledError as exc:
                 raise ProgramNotInstalledError(exc.program) from exc
