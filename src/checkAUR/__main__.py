@@ -12,7 +12,7 @@ from checkAUR.aur_path import load_env
 from checkAUR.use_git import pull_entire_aur
 from checkAUR.compare_packages import show_results
 from checkAUR.common.exceptions import ProgramNotInstalledError
-from checkAUR.common.package import read_enitre_repo_pkgbuild
+from checkAUR.common.package import read_enitre_repo_pkgbuild, Package
 from checkAUR.pacman import extract_local_packages
 from checkAUR.common.data_classes import TuplePackages
 
@@ -37,7 +37,7 @@ def run_main(ignore=False) -> None:
     Args:
         ignore (bool, optional): if checkrebuild should be ignored. Defaults to False.
     """
-    invalid_packages: tuple[str,...]
+    invalid_packages: set[str]
     if ignore:
         logger.debug("Running checkrebuild")
         try:
@@ -47,16 +47,16 @@ def run_main(ignore=False) -> None:
             message = "Error during analysis of checkrebuild results! The step will be skipped"
             print(message)
             logger.error(message)
-            invalid_packages = ()
+            invalid_packages = set()
         except ProgramNotInstalledError as exc:
             print(str(exc))
             print("Check if it's installed, install it using pacman or use -i flag. The step will be skipped")
-            invalid_packages = ()
+            invalid_packages = set()
         logger.debug("Search results:")
         logger.debug(invalid_packages)
         print_invalid_packages(invalid_packages)
     else:
-        invalid_packages = ()
+        invalid_packages = set()
 
     try:
         env_variables = load_env()
@@ -68,14 +68,14 @@ def run_main(ignore=False) -> None:
     print(message)
     logger.debug(message)
     try:
-        pulled_packages = pull_entire_aur(aur_path)
+        pulled_packages: set[Package] = pull_entire_aur(aur_path)
     except ProgramNotInstalledError:
         print("Closing...")
         return
     logger.debug("%s repos pulled", len(pulled_packages))
 
-    aur_packages = read_enitre_repo_pkgbuild(aur_path)
-    pacman_packages = extract_local_packages()
+    aur_packages: set[Package] = read_enitre_repo_pkgbuild(aur_path)
+    pacman_packages: set[Package] = extract_local_packages()
     results = TuplePackages(aur_packages=aur_packages,
         pacman_packages=pacman_packages,
         pulled_packages=pulled_packages,

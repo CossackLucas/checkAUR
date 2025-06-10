@@ -6,23 +6,22 @@ from typing import Optional
 from checkAUR.common.package import Package, find_package
 from checkAUR.common.data_classes import TuplePackages
 
-type PackageData = tuple[Package,...]
+type PackageData = set[Package]
 
 
 def print_differences_packages(pulled_packages: PackageData,
-    invalid_packages: tuple[str,...]
+    invalid_packages: set[str]
 ) -> None:
     """print information on packages waiting for update and packages marked by checkrebuild
 
     Args:
         pulled_packages (PackageData): list of packages updated by Git
-        invalid_packages (tuple[str,...]): list of packages marked by checkrebuild
+        invalid_packages (set[str]): list of packages marked by checkrebuild
     """
     if len(invalid_packages) == 0:
         return
 
-    pulled_names: set[str] = set(package.name for package in pulled_packages)
-    result: tuple[str,...] = compare_invalid_packages(pulled_names, invalid_packages)
+    result: tuple[str,...] = compare_invalid_packages(pulled_packages, invalid_packages)
     if len(result) == 0:
         print("All packages marked by checkrebuild are among the updated")
         return
@@ -32,27 +31,29 @@ def print_differences_packages(pulled_packages: PackageData,
         print(f"\t{data}")
 
 
-def compare_invalid_packages(pulled_packages: set[str],
-    invalid_packages: tuple[str,...]
+def compare_invalid_packages(pulled_packages: set[Package],
+    invalid_packages: set[str]
 ) -> tuple[str,...]:
     """compare invalid packages with pulled packages
 
     Args:
         pulled_packages (set[str): updated packages
-        invalid_packages (tuple[str,...]): packages marked by checkrebuild
+        invalid_packages (set[str]): packages marked by checkrebuild
 
     Returns:
         tuple[str,...]: tuple of packages among the invalid packages, but not updated by Git
     """
-    return tuple(package for package in invalid_packages if package not in pulled_packages)
+    sorter = set(package.name for package in pulled_packages)
+    return tuple(sorted(package for package in invalid_packages \
+        if package not in sorter))
 
 
 def compare_packages(aur_packages: PackageData, pacman_packages: PackageData) -> PackageData:
     """compare data from pacman and data found in AUR directory
 
     Args:
-        aur_packages (PackageData): tuple of packages found in AUR directory
-        pacman_packages (PackageData): tuple of packages found in pacman
+        aur_packages (PackageData): set of packages found in AUR directory
+        pacman_packages (PackageData): set of packages found in pacman
 
     Returns:
         PackageData: AUR packages ready for an update
@@ -65,14 +66,14 @@ def compare_packages(aur_packages: PackageData, pacman_packages: PackageData) ->
 
         if package > check:
             result.append(package)
-    return tuple(result)
+    return set(result)
 
 
 def print_pulled_packages(pulled_packages: PackageData) -> None:
-    """print the tuple of pulled packages
+    """print the set of pulled packages
 
     Args:
-        pulled_packages (PackageData): tuple of pulled packages
+        pulled_packages (PackageData): set of pulled packages
     """
     count_pulled_packages = len(pulled_packages)
     print(f"{count_pulled_packages} packages were pulled.")
@@ -84,11 +85,11 @@ def print_pulled_packages(pulled_packages: PackageData) -> None:
 
 
 def print_awaiting_packages(compared_packages: PackageData, pacman_packages: PackageData) -> None:
-    """print the list of packages awaiting an update
+    """print the set of packages awaiting an update
 
     Args:
-        compared_packages (PackageData): tuple of all awaiting packages
-        pacman_packages (PackageData): tuple of all manually installed packages
+        compared_packages (PackageData): set of all awaiting packages
+        pacman_packages (PackageData): set of all manually installed packages
     """
     if len(compared_packages) == 0:
         print("No updates detected")

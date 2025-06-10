@@ -56,24 +56,24 @@ class Package:
         return True
 
     def __lt__(self, other_package: Self) -> bool:
-        return self._compare_version(other_package, ">")
-
-    def __gt__(self, other_package: Self) -> bool:
         return self._compare_version(other_package, "<")
 
-    def __le__(self, other_package: Self) -> bool:
-        return self._compare_version(other_package, ">=")
+    def __gt__(self, other_package: Self) -> bool:
+        return self._compare_version(other_package, ">")
 
-    def __ge__(self, other_package: Self) -> bool:
+    def __le__(self, other_package: Self) -> bool:
         return self._compare_version(other_package, "<=")
 
+    def __ge__(self, other_package: Self) -> bool:
+        return self._compare_version(other_package, ">=")
 
-def find_package(package_name:str, packages: tuple[Package,...]) -> Optional[Package]:
+
+def find_package(package_name:str, packages: set[Package]) -> Optional[Package]:
     """find by name package in the collection
 
     Args:
         package_name (str): name of the looked for package
-        packages (tuple[Package,...]): collection of the packages
+        packages (set[Package]): collection of the packages
 
     Returns:
         Optional[Package]: if match not found, return None
@@ -134,15 +134,15 @@ def read_pkgbuild(repo_path: Path) -> Package:
     return Package(repo_path.stem, version)
 
 
-def read_enitre_repo_pkgbuild(aur_path: Path) -> tuple[Package,...]:
+def read_enitre_repo_pkgbuild(aur_path: Path) -> set[Package]:
     """read all packages from folder using PKGBUILD files as base
 
     Args:
         aur_path (Path): path to AUR repos folder
 
     Returns:
-        tuple[Package,...]: packages found
+        set[Package]: packages found
     """
     folder_list: list[str] = os.listdir(aur_path)
     repo_tuple: tuple[Path,...] = tuple((aur_path / folder) for folder in folder_list)
-    return tuple(read_pkgbuild(repo) for repo in repo_tuple)
+    return set(read_pkgbuild(repo) for repo in repo_tuple)

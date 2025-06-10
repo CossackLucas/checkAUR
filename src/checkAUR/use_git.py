@@ -113,14 +113,14 @@ def pull_repo(repo_path: Path) -> bool:
     return True
 
 
-def pull_entire_aur(aur_path: Path) -> tuple[Package,...]:
+def pull_entire_aur(aur_path: Path) -> set[Package]:
     """perform 'git pull' on user's entire AUR folder
 
     Args:
         aur_path (Path): path to user's AUR folder
 
     Returns:
-        tuple[Package,...]: tuple of pulled packages
+        set[Package]: tuple of pulled packages
     """
     assert isinstance(aur_path, Path)
     folder_list: list[str] = os.listdir(aur_path)
@@ -138,4 +138,4 @@ def pull_entire_aur(aur_path: Path) -> tuple[Package,...]:
                     pull_result.append(read_pkgbuild(repo))
             except ProgramNotInstalledError as exc:
                 raise ProgramNotInstalledError(exc.program) from exc
-    return tuple(pull_result)
+    return set(pull_result)

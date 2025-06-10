@@ -7,11 +7,11 @@ from checkAUR.common.custom_logging import logger
 from checkAUR.common.exceptions import ProgramNotInstalledError
 
 
-def check_rebuild() -> tuple[str,...]:
+def check_rebuild() -> set[str]:
     """check AUR packages requiring updates
 
     Returns:
-        tuple[str,...]: tuple of packages requiring updates
+        set[str]: set of packages requiring updates
     Raises:
         ProgramNotInstalledError: if checkrebuild is not available
         UnicodeError: if it's not possible to convert stdout to string
@@ -32,7 +32,7 @@ def check_rebuild() -> tuple[str,...]:
         raise UnicodeError from exc
 
 
-def extract_packages(stdout: bytes) -> tuple[str,...]:
+def extract_packages(stdout: bytes) -> set[str]:
     """extract package data from stdout
 
     Args:
@@ -42,22 +42,22 @@ def extract_packages(stdout: bytes) -> tuple[str,...]:
         UnicodeError: if it's not possible to convert stdout to string
 
     Returns:
-        tuple[str,...]: tuple of packages requiring updates
+        set[str]: set of packages requiring updates
     """
     try:
         conversion: str = stdout.decode(encoding="utf-8", errors="strict")
     except UnicodeError as exc:
         raise UnicodeError("stdout could not be converted to string") from exc
     search_result: list[re.Match] = re.findall(r"(foreign)\t(.+)\n", conversion)
-    return tuple(element[1] for element in search_result)
+    return set(element[1] for element in search_result)
 
 
 
-def print_invalid_packages(invalid_packages: tuple[str,...]) -> None:
+def print_invalid_packages(invalid_packages: set[str]) -> None:
     """print list of all packages, marked as invalid by checkrbuild
 
     Args:
-        invalid_packages (tuple[str,...]): tuple of invalid packages
+        invalid_packages (set[str]): set of invalid packages
     """
     logger.debug("Printing package list")
     print("AUR packages with issues:")

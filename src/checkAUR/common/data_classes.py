@@ -14,7 +14,9 @@ class EnvVariables(NamedTuple):
 
 
 class TuplePackages(NamedTuple):
-    aur_packages: tuple[Package,...]
-    pacman_packages: tuple[Package,...]
-    pulled_packages: tuple[Package,...]
-    invalid_packages: tuple[str,...]
+    """tuple type aggregating all used collections of packages
+    """
+    aur_packages: set[Package]
+    pacman_packages: set[Package]
+    pulled_packages: set[Package]
+    invalid_packages: set[str]
